@@ -1,38 +1,38 @@
-      # ATOMS.yml — catalog manifest for agent-atoms
-      #
-      # See https://github.com/convergent-systems-co/atoms-spec for the canonical schema this conforms to.
+# ATOMS.yml — catalog manifest for agent-atoms
+#
+# See https://github.com/convergent-systems-co/atoms-spec for the canonical schema this conforms to.
 
-      name: agent-atoms
-      version: 0.1.0
-      spec: atoms-spec/v1
-      domain: agent-atoms.com
-      ecosystem:
-        federation: xdao.co
-        redirect: agent.xdao.co
+name: agent-atoms
+version: 0.1.0
+spec: atoms-spec/v1
+domain: agent-atoms.com
+ecosystem:
+  federation: xdao.co
+  redirect: agent.xdao.co
 
-      purpose: |
-        Agent primitives canonicalized — personas, tool definitions, capability declarations, role boundaries, isolation constraints — across LangChain, AutoGen, CrewAI, Olympus and beyond.
+purpose: |
+  Agent primitives canonicalized — personas, tool definitions, capability declarations, role boundaries, isolation constraints — across LangChain, AutoGen, CrewAI, Olympus and beyond.
 
-      atomTypes:
-        - persona
-- tool-definition
-- capability-declaration
-- role-boundary
-- isolation-constraint
+atomTypes:
+  - persona
+  - tool-definition
+  - capability-declaration
+  - role-boundary
+  - isolation-constraint
 
-      compositionType: agents
-      compositionDir: agents
+compositionType: agents
+compositionDir: agents
 
-      ruleTypes:
-        - capability-grant
-- isolation-rule
-- communication-pattern
-- supervision-hierarchy
+ruleTypes:
+  - capability-grant
+  - isolation-rule
+  - communication-pattern
+  - supervision-hierarchy
 
-      runtimeConsumers:
-        - olympus
+runtimeConsumers:
+  - olympus
 
-      license: Apache-2.0
-      maintainers:
-        - name: Convergent Systems
-          contact: maintainers@xdao.co
+license: Apache-2.0
+maintainers:
+  - name: Convergent Systems
+    contact: maintainers@xdao.co
