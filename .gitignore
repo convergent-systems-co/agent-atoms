@@ -744,3 +744,7 @@ vite.config.ts.timestamp-*
 
 # AI tooling state (checkpoints, transient logs)
 .ai/
+
+# Scripts directory is meant to be tracked (validator etc.); override the .NET [Ss]cripts rule
+!scripts/
+!scripts/**
