@@ -1,0 +1,19 @@
+{
+  "schema": "https://agent-atoms.com/schemas/rule-v1.json",
+  "type": "capability-grant",
+  "id": "exec-requires-isolation",
+  "version": "1.0.0",
+  "name": "Exec requires container-grade isolation",
+  "description": "capability/exec-with-approval requires isolation in {container-with-allowlist, ephemeral-vm, seccomp-restricted}. read-only-sandbox is too weak; no-isolation is forbidden.",
+  "predicate": {
+    "subject_ref": "agent-atoms://atoms/capability-declaration/exec-with-approval",
+    "condition": "in",
+    "value": [
+      "agent-atoms://atoms/isolation-constraint/container-with-allowlist",
+      "agent-atoms://atoms/isolation-constraint/ephemeral-vm",
+      "agent-atoms://atoms/isolation-constraint/seccomp-restricted"
+    ]
+  },
+  "effect": "require",
+  "rationale": "An agent granted exec-commands without container-grade isolation has a path to escape the workspace via any subprocess it spawns. Pair exec capability with an isolation atom that constrains process, filesystem, and network at the host level."
+}
