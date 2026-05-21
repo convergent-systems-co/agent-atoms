@@ -1,0 +1,1359 @@
+{
+  "catalog": "agent-atoms",
+  "version": "0.1.0",
+  "built_at": "2026-05-21T21:59:27+00:00",
+  "atoms": [
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "capability-declaration",
+      "id": "coder-with-approval",
+      "version": "1.0.0",
+      "name": "Coder with approval",
+      "description": "Read + write files in the workspace; exec commands and spawn sub-agents only with explicit user approval. Destructive ops blocked.",
+      "capability": {
+        "grants": [
+          "read-files",
+          "write-files",
+          "exec-commands",
+          "user-prompt",
+          "spawn-subagent"
+        ],
+        "elevation": "user-approved",
+        "audit": true
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "capability-declaration",
+      "id": "db-read-only",
+      "version": "1.0.0",
+      "name": "DB read-only",
+      "description": "SELECT only against a named DSN. No mutations.",
+      "capability": {
+        "grants": [
+          "network"
+        ],
+        "elevation": "declared",
+        "audit": false
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "capability-declaration",
+      "id": "db-read-write",
+      "version": "1.0.0",
+      "name": "DB read-write",
+      "description": "All DML against a named DSN. INSERT / UPDATE / DELETE.",
+      "capability": {
+        "grants": [
+          "network",
+          "user-prompt"
+        ],
+        "elevation": "user-approved",
+        "audit": true
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "capability-declaration",
+      "id": "exec-with-approval",
+      "version": "1.0.0",
+      "name": "Exec with approval",
+      "description": "Execute shell commands with per-command user approval. Read + write filesystem; no unscoped network.",
+      "capability": {
+        "grants": [
+          "read-files",
+          "write-files",
+          "exec-commands",
+          "user-prompt"
+        ],
+        "elevation": "user-approved",
+        "audit": true
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "capability-declaration",
+      "id": "file-write-scoped",
+      "version": "1.0.0",
+      "name": "File write (scoped)",
+      "description": "Read + write within a configured path prefix only. No exec, no delete, no network.",
+      "capability": {
+        "grants": [
+          "read-files",
+          "write-files"
+        ],
+        "elevation": "declared",
+        "audit": true
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "capability-declaration",
+      "id": "network-full",
+      "version": "1.0.0",
+      "name": "Network full",
+      "description": "Any HTTP method against any host on the configured allowlist. Pair with isolation/container-with-allowlist.",
+      "capability": {
+        "grants": [
+          "network"
+        ],
+        "elevation": "user-approved",
+        "audit": true
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "capability-declaration",
+      "id": "network-read-only",
+      "version": "1.0.0",
+      "name": "Network read-only",
+      "description": "Outbound HTTP GET only. No POST/PUT/PATCH/DELETE.",
+      "capability": {
+        "grants": [
+          "network"
+        ],
+        "elevation": "declared",
+        "audit": true
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "capability-declaration",
+      "id": "read-only-workspace",
+      "version": "1.0.0",
+      "name": "Read-only workspace",
+      "description": "Read files in the workspace; cannot write, exec, or hit the network. Used by reviewer / analyst agents.",
+      "capability": {
+        "grants": [
+          "read-files"
+        ],
+        "elevation": "declared",
+        "audit": false
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "isolation-constraint",
+      "id": "container-with-allowlist",
+      "version": "1.0.0",
+      "name": "Container with network allowlist",
+      "description": "Container-isolated execution with an allowlist for network egress (e.g., package registries, AI endpoints only). Scoped tmpfs filesystem.",
+      "isolation": {
+        "process": "container",
+        "network": "allowlist",
+        "filesystem": "scoped",
+        "scoped_paths": [
+          "/workspace",
+          "/tmp"
+        ]
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "isolation-constraint",
+      "id": "ephemeral-vm",
+      "version": "1.0.0",
+      "name": "Ephemeral VM",
+      "description": "Single-use VM destroyed on task completion. Strongest practical isolation for untrusted execution.",
+      "isolation": {
+        "process": "vm",
+        "network": "allowlist",
+        "filesystem": "tmpfs",
+        "scoped_paths": [
+          "/workspace"
+        ]
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "isolation-constraint",
+      "id": "network-namespaced",
+      "version": "1.0.0",
+      "name": "Network namespaced",
+      "description": "Own network namespace with explicit allowlist. Filesystem and process boundaries delegated to the host.",
+      "isolation": {
+        "process": "subprocess",
+        "network": "allowlist",
+        "filesystem": "scoped",
+        "scoped_paths": [
+          "${WORKSPACE_ROOT}"
+        ]
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "isolation-constraint",
+      "id": "read-only-sandbox",
+      "version": "1.0.0",
+      "name": "Read-only sandbox",
+      "description": "Subprocess with read-only filesystem mount, no network, scoped to the workspace root. Used by reviewer / analyst agents.",
+      "isolation": {
+        "process": "subprocess",
+        "network": "none",
+        "filesystem": "read-only",
+        "scoped_paths": [
+          "${WORKSPACE_ROOT}"
+        ]
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "isolation-constraint",
+      "id": "seccomp-restricted",
+      "version": "1.0.0",
+      "name": "Seccomp restricted",
+      "description": "Subprocess with seccomp filter — only whitelisted syscalls allowed. No network; scoped filesystem.",
+      "isolation": {
+        "process": "subprocess",
+        "network": "none",
+        "filesystem": "scoped",
+        "scoped_paths": [
+          "${WORKSPACE_ROOT}"
+        ]
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "persona",
+      "id": "code-reviewer",
+      "version": "1.0.0",
+      "name": "Code Reviewer",
+      "description": "Adversarial code-review agent. Reads diffs, finds issues, files comments. Read-only filesystem; no exec; no network.",
+      "tags": [
+        "engineering",
+        "code-review"
+      ],
+      "persona_profile": {
+        "role": "Adversarial code reviewer",
+        "expertise": [
+          "static-analysis",
+          "test-coverage",
+          "security-adjacent"
+        ],
+        "voice": "Direct. Cites path:line. Refuses findings without evidence.",
+        "planner": "react",
+        "memory_model": "scratchpad",
+        "supervisor": "none"
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "persona",
+      "id": "data-pipeline-agent",
+      "version": "1.0.0",
+      "name": "Data Pipeline Agent",
+      "description": "ETL / batch processing agent. Idempotency-disciplined: every step is restartable, every write is checkpointed.",
+      "tags": [
+        "data",
+        "etl",
+        "pipelines"
+      ],
+      "persona_profile": {
+        "role": "Batch / streaming pipeline operator",
+        "expertise": [
+          "idempotency",
+          "checkpoint-design",
+          "schema-evolution"
+        ],
+        "voice": "Pragmatic. States preconditions and effects. Treats every write as a transaction.",
+        "planner": "plan-and-execute",
+        "memory_model": "long-term",
+        "supervisor": "none"
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "persona",
+      "id": "debug-agent",
+      "version": "1.0.0",
+      "name": "Debug Agent",
+      "description": "Five-phase systematic debugger. Reproduce → isolate → root cause → fix with regression test → verify.",
+      "tags": [
+        "debugging",
+        "engineering"
+      ],
+      "persona_profile": {
+        "role": "Systematic debugger",
+        "expertise": [
+          "reproduction-recipes",
+          "binary-search-isolation",
+          "root-cause-analysis"
+        ],
+        "voice": "Methodical. Refuses to propose a fix without a reliable reproduction.",
+        "planner": "react",
+        "memory_model": "scratchpad",
+        "supervisor": "none"
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "persona",
+      "id": "devops-engineer",
+      "version": "1.0.0",
+      "name": "DevOps Engineer",
+      "description": "Singleton orchestrator persona for the /spawn pipeline. Partitions issues into domain batches, never writes feature code.",
+      "tags": [
+        "devops",
+        "orchestrator",
+        "spawn"
+      ],
+      "persona_profile": {
+        "role": "Singleton DevOps orchestrator",
+        "expertise": [
+          "github-projects",
+          "issue-triage",
+          "pr-review",
+          "merge-strategy",
+          "ci-cd"
+        ],
+        "voice": "Concise. Status-comment-driven. Never narrates work that's visible in diffs.",
+        "planner": "plan-and-execute",
+        "memory_model": "long-term",
+        "supervisor": "none"
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "persona",
+      "id": "docs-writer-agent",
+      "version": "1.0.0",
+      "name": "Docs Writer Agent",
+      "description": "Documentation-drafting agent. Names the audience, defines jargon, keeps examples runnable.",
+      "tags": [
+        "documentation",
+        "writing"
+      ],
+      "persona_profile": {
+        "role": "Technical documentation author",
+        "expertise": [
+          "audience-targeting",
+          "code-sample-curation",
+          "information-architecture"
+        ],
+        "voice": "Active voice, short sentences, audience-tagged.",
+        "planner": "plan-and-execute",
+        "memory_model": "short-term",
+        "supervisor": "none"
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "persona",
+      "id": "planner-agent",
+      "version": "1.0.0",
+      "name": "Planner Agent",
+      "description": "Decomposition-first agent. Builds Alternatives Tables, sequences work, surfaces risk before any execution.",
+      "tags": [
+        "planning",
+        "decomposition"
+      ],
+      "persona_profile": {
+        "role": "Implementation planner",
+        "expertise": [
+          "work-decomposition",
+          "risk-assessment",
+          "alternatives-analysis"
+        ],
+        "voice": "Structured. Always names the alternatives considered. Refuses to recommend without showing tradeoffs.",
+        "planner": "tree-of-thoughts",
+        "memory_model": "long-term",
+        "supervisor": "none"
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "persona",
+      "id": "refactor-agent",
+      "version": "1.0.0",
+      "name": "Refactor Agent",
+      "description": "Behavior-preserving refactor agent. If it finds a bug, it files it separately — never bundles a fix into a refactor.",
+      "tags": [
+        "refactor",
+        "engineering"
+      ],
+      "persona_profile": {
+        "role": "Behavior-preserving refactor",
+        "expertise": [
+          "test-equivalence",
+          "code-smell-detection",
+          "incremental-restructuring"
+        ],
+        "voice": "Surgical. Cites tests as the contract. Files bugs separately when discovered.",
+        "planner": "plan-and-execute",
+        "memory_model": "short-term",
+        "supervisor": "none"
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "persona",
+      "id": "research-agent",
+      "version": "1.0.0",
+      "name": "Research Agent",
+      "description": "Multi-step research agent. Decomposes queries, hits sources, synthesizes with provenance discipline.",
+      "tags": [
+        "research",
+        "synthesis",
+        "citations"
+      ],
+      "persona_profile": {
+        "role": "Research synthesizer",
+        "expertise": [
+          "source-evaluation",
+          "citation-discipline",
+          "multi-hop-search"
+        ],
+        "voice": "Calm, precise. Names every source. Surfaces unresolved questions.",
+        "planner": "plan-and-execute",
+        "memory_model": "scratchpad",
+        "supervisor": "none"
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "persona",
+      "id": "test-writer-agent",
+      "version": "1.0.0",
+      "name": "Test Writer Agent",
+      "description": "TDD-discipline agent. Writes the failing test first, watches it fail, writes the minimal impl, watches it pass.",
+      "tags": [
+        "testing",
+        "tdd"
+      ],
+      "persona_profile": {
+        "role": "Test-driven development practitioner",
+        "expertise": [
+          "red-green-refactor",
+          "test-naming",
+          "coverage-gap-analysis"
+        ],
+        "voice": "Disciplined. Refuses to write impl before the failing test exists.",
+        "planner": "react",
+        "memory_model": "scratchpad",
+        "supervisor": "none"
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "persona",
+      "id": "triage-agent",
+      "version": "1.0.0",
+      "name": "Triage Agent",
+      "description": "Bug-triage agent. Searches for duplicates before filing; creates well-structured tickets with reproduction + context.",
+      "tags": [
+        "triage",
+        "issue-management"
+      ],
+      "persona_profile": {
+        "role": "Issue triager",
+        "expertise": [
+          "duplicate-detection",
+          "issue-templates",
+          "reproducer-distillation"
+        ],
+        "voice": "Concise. Always checks for duplicates first. Links related issues.",
+        "planner": "react",
+        "memory_model": "vector",
+        "supervisor": "none"
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "role-boundary",
+      "id": "no-code-execution",
+      "version": "1.0.0",
+      "name": "No code execution",
+      "description": "Refuses to execute any command. Reviewers and analysts use this — they describe what would happen but never run it.",
+      "boundary": {
+        "refusals": [
+          "Do not execute shell commands.",
+          "Do not run scripts.",
+          "Do not invoke build / test / deploy.",
+          "Describe the command and its effect; let the user run it."
+        ],
+        "escalate_to": "none"
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "role-boundary",
+      "id": "no-cross-project-access",
+      "version": "1.0.0",
+      "name": "No cross-project access",
+      "description": "Refuses read or write outside the declared project root. Prevents cross-tenant or cross-workspace leakage.",
+      "boundary": {
+        "refusals": [
+          "Do not read files outside the declared project root.",
+          "Do not write files outside the declared project root.",
+          "Do not exec commands that would traverse outside the project root.",
+          "If a task requires cross-project context, escalate with the specific paths and rationale."
+        ],
+        "escalate_to": "agent-atoms://atoms/persona/devops-engineer"
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "role-boundary",
+      "id": "no-data-exfiltration",
+      "version": "1.0.0",
+      "name": "No data exfiltration",
+      "description": "Refuses to send workspace contents (files, env vars, secrets) to external hosts. For agents with network access on sensitive data.",
+      "boundary": {
+        "refusals": [
+          "Do not POST / PUT / PATCH workspace file contents to external hosts.",
+          "Do not include environment variable values in network requests.",
+          "Do not summarize internal data into a payload bound for a third-party service.",
+          "If a task requires external sharing, escalate with the exact data to be shared and the destination."
+        ],
+        "escalate_to": "agent-atoms://atoms/persona/devops-engineer"
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "role-boundary",
+      "id": "no-destructive-without-ack",
+      "version": "1.0.0",
+      "name": "No destructive without acknowledgment",
+      "description": "Refuses destructive or hard-to-reverse operations without an explicit user confirmation. Mirrors Common.md §2.2.",
+      "boundary": {
+        "refusals": [
+          "Do not delete files, directories, branches, tags without explicit acknowledgment.",
+          "Do not force-push or rewrite history without explicit acknowledgment.",
+          "Do not drop tables or run destructive migrations without explicit acknowledgment.",
+          "State the scope of the destruction and the reversibility; request confirmation; snapshot if reversible."
+        ],
+        "escalate_to": "none"
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "role-boundary",
+      "id": "no-network-egress",
+      "version": "1.0.0",
+      "name": "No network egress",
+      "description": "Refuses any tool call that hits the network. For air-gapped reviewers, untrusted-input handlers, supply-chain auditors.",
+      "boundary": {
+        "refusals": [
+          "Do not make HTTP / HTTPS requests.",
+          "Do not resolve hostnames.",
+          "Do not invoke tools whose side_effects include 'network'.",
+          "If a task requires network, escalate to a supervisor with the explicit request."
+        ],
+        "escalate_to": "agent-atoms://atoms/persona/devops-engineer"
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "tool-definition",
+      "id": "bash-exec",
+      "version": "1.0.0",
+      "name": "bash-exec",
+      "description": "Execute a shell command. Gated by capability/exec-with-approval and isolation/container-with-allowlist or stricter.",
+      "tool_spec": {
+        "function_name": "bash_exec",
+        "summary": "Execute a bash command.",
+        "parameters": {
+          "command": {
+            "type": "string",
+            "description": "Command line to run",
+            "required": true
+          },
+          "timeout_ms": {
+            "type": "number",
+            "description": "Max runtime in ms",
+            "required": false
+          }
+        },
+        "returns": {
+          "type": "object",
+          "description": "{stdout, stderr, exit_code}."
+        },
+        "side_effects": [
+          "exec"
+        ]
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "tool-definition",
+      "id": "file-delete",
+      "version": "1.0.0",
+      "name": "file-delete",
+      "description": "Remove a file. Destructive. Requires explicit user approval.",
+      "tool_spec": {
+        "function_name": "file_delete",
+        "summary": "Delete a file at a path.",
+        "parameters": {
+          "path": {
+            "type": "string",
+            "description": "File path",
+            "required": true
+          }
+        },
+        "returns": {
+          "type": "object",
+          "description": "{path, removed}."
+        },
+        "side_effects": [
+          "fs-write",
+          "user-prompt"
+        ]
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "tool-definition",
+      "id": "file-edit",
+      "version": "1.0.0",
+      "name": "file-edit",
+      "description": "Targeted string replacement in a file. Requires a prior read of the same file.",
+      "tool_spec": {
+        "function_name": "file_edit",
+        "summary": "Replace exact string with new string in a file.",
+        "parameters": {
+          "path": {
+            "type": "string",
+            "description": "File path",
+            "required": true
+          },
+          "old_string": {
+            "type": "string",
+            "description": "Exact existing string",
+            "required": true
+          },
+          "new_string": {
+            "type": "string",
+            "description": "Replacement",
+            "required": true
+          },
+          "replace_all": {
+            "type": "boolean",
+            "description": "Replace every occurrence",
+            "required": false
+          }
+        },
+        "returns": {
+          "type": "object",
+          "description": "{path, replacements}."
+        },
+        "side_effects": [
+          "fs-write"
+        ]
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "tool-definition",
+      "id": "file-write",
+      "version": "1.0.0",
+      "name": "file-write",
+      "description": "Create or overwrite a file. Side-effecting.",
+      "tool_spec": {
+        "function_name": "file_write",
+        "summary": "Write content to a file path.",
+        "parameters": {
+          "path": {
+            "type": "string",
+            "description": "Destination path",
+            "required": true
+          },
+          "content": {
+            "type": "string",
+            "description": "Bytes / UTF-8 content",
+            "required": true
+          }
+        },
+        "returns": {
+          "type": "object",
+          "description": "{path, bytes_written}."
+        },
+        "side_effects": [
+          "fs-write"
+        ]
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "tool-definition",
+      "id": "git-blame",
+      "version": "1.0.0",
+      "name": "git-blame",
+      "description": "Per-line authorship for a file.",
+      "tool_spec": {
+        "function_name": "git_blame",
+        "summary": "Annotate each line with its last commit.",
+        "parameters": {
+          "path": {
+            "type": "string",
+            "description": "File path",
+            "required": true
+          },
+          "rev": {
+            "type": "string",
+            "description": "Revision to blame (default: HEAD)",
+            "required": false
+          }
+        },
+        "returns": {
+          "type": "array",
+          "description": "Annotated lines."
+        },
+        "side_effects": [
+          "fs-read",
+          "exec"
+        ]
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "tool-definition",
+      "id": "git-diff",
+      "version": "1.0.0",
+      "name": "git-diff",
+      "description": "Show changes between commits, branches, or working tree. Read-only.",
+      "tool_spec": {
+        "function_name": "git_diff",
+        "summary": "Run `git diff` and return the unified diff.",
+        "parameters": {
+          "base": {
+            "type": "string",
+            "description": "Base ref (commit, branch, tag).",
+            "required": false
+          },
+          "head": {
+            "type": "string",
+            "description": "Head ref (default: HEAD).",
+            "required": false
+          },
+          "paths": {
+            "type": "array",
+            "description": "Limit diff to these paths.",
+            "required": false
+          }
+        },
+        "returns": {
+          "type": "string",
+          "description": "Unified diff output."
+        },
+        "side_effects": [
+          "fs-read",
+          "exec"
+        ]
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "tool-definition",
+      "id": "git-log",
+      "version": "1.0.0",
+      "name": "git-log",
+      "description": "Commit history for a ref / path.",
+      "tool_spec": {
+        "function_name": "git_log",
+        "summary": "Return commits for a ref or path.",
+        "parameters": {
+          "ref": {
+            "type": "string",
+            "description": "Ref to log (default: HEAD)",
+            "required": false
+          },
+          "path": {
+            "type": "string",
+            "description": "Restrict to path",
+            "required": false
+          },
+          "limit": {
+            "type": "number",
+            "description": "Max commits",
+            "required": false
+          }
+        },
+        "returns": {
+          "type": "array",
+          "description": "Commit objects {sha, author, date, subject}."
+        },
+        "side_effects": [
+          "fs-read",
+          "exec"
+        ]
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "tool-definition",
+      "id": "git-show",
+      "version": "1.0.0",
+      "name": "git-show",
+      "description": "Detail for a single commit — message, files, diff.",
+      "tool_spec": {
+        "function_name": "git_show",
+        "summary": "Return the detail of a commit.",
+        "parameters": {
+          "sha": {
+            "type": "string",
+            "description": "Commit SHA or ref",
+            "required": true
+          }
+        },
+        "returns": {
+          "type": "object",
+          "description": "Commit detail with diff."
+        },
+        "side_effects": [
+          "fs-read",
+          "exec"
+        ]
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "tool-definition",
+      "id": "git-status",
+      "version": "1.0.0",
+      "name": "git-status",
+      "description": "Working tree status — staged, modified, untracked.",
+      "tool_spec": {
+        "function_name": "git_status",
+        "summary": "Return the working tree status.",
+        "parameters": {},
+        "returns": {
+          "type": "object",
+          "description": "Status grouped by category."
+        },
+        "side_effects": [
+          "fs-read",
+          "exec"
+        ]
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "tool-definition",
+      "id": "glob",
+      "version": "1.0.0",
+      "name": "glob",
+      "description": "Enumerate paths matching a glob pattern.",
+      "tool_spec": {
+        "function_name": "glob",
+        "summary": "Return paths matching a glob.",
+        "parameters": {
+          "pattern": {
+            "type": "string",
+            "description": "Glob pattern",
+            "required": true
+          },
+          "root": {
+            "type": "string",
+            "description": "Root path",
+            "required": false
+          }
+        },
+        "returns": {
+          "type": "array",
+          "description": "Matching paths."
+        },
+        "side_effects": [
+          "fs-read"
+        ]
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "tool-definition",
+      "id": "grep",
+      "version": "1.0.0",
+      "name": "grep",
+      "description": "Pattern search across files. Returns matching lines with file:line locations.",
+      "tool_spec": {
+        "function_name": "grep",
+        "summary": "Search for a regex pattern across files.",
+        "parameters": {
+          "pattern": {
+            "type": "string",
+            "description": "Regex to match",
+            "required": true
+          },
+          "path": {
+            "type": "string",
+            "description": "Root path or file",
+            "required": true
+          },
+          "case_insensitive": {
+            "type": "boolean",
+            "description": "Ignore case",
+            "required": false
+          },
+          "max_matches": {
+            "type": "number",
+            "description": "Cap on returned matches",
+            "required": false
+          }
+        },
+        "returns": {
+          "type": "array",
+          "description": "Match objects {file, line, text}."
+        },
+        "side_effects": [
+          "fs-read"
+        ]
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "tool-definition",
+      "id": "http-fetch",
+      "version": "1.0.0",
+      "name": "http-fetch",
+      "description": "HTTP GET. Returns body and status.",
+      "tool_spec": {
+        "function_name": "http_fetch",
+        "summary": "Perform an HTTP GET.",
+        "parameters": {
+          "url": {
+            "type": "string",
+            "description": "URL to fetch",
+            "required": true
+          },
+          "headers": {
+            "type": "object",
+            "description": "Optional request headers",
+            "required": false
+          }
+        },
+        "returns": {
+          "type": "object",
+          "description": "{status, headers, body}."
+        },
+        "side_effects": [
+          "network"
+        ]
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "tool-definition",
+      "id": "http-post",
+      "version": "1.0.0",
+      "name": "http-post",
+      "description": "HTTP POST / PUT / PATCH / DELETE. Side-effecting.",
+      "tool_spec": {
+        "function_name": "http_post",
+        "summary": "Perform a side-effecting HTTP request.",
+        "parameters": {
+          "url": {
+            "type": "string",
+            "description": "URL",
+            "required": true
+          },
+          "method": {
+            "type": "string",
+            "description": "POST / PUT / PATCH / DELETE",
+            "required": true
+          },
+          "body": {
+            "type": "string",
+            "description": "Request body",
+            "required": false
+          },
+          "headers": {
+            "type": "object",
+            "description": "Request headers",
+            "required": false
+          }
+        },
+        "returns": {
+          "type": "object",
+          "description": "{status, headers, body}."
+        },
+        "side_effects": [
+          "network"
+        ]
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "tool-definition",
+      "id": "list-dir",
+      "version": "1.0.0",
+      "name": "list-dir",
+      "description": "List entries in a directory. Read-only.",
+      "tool_spec": {
+        "function_name": "list_dir",
+        "summary": "Return the names of entries in a directory.",
+        "parameters": {
+          "path": {
+            "type": "string",
+            "description": "Directory path",
+            "required": true
+          },
+          "recursive": {
+            "type": "boolean",
+            "description": "Recurse into subdirs",
+            "required": false
+          }
+        },
+        "returns": {
+          "type": "array",
+          "description": "Entry names (strings)."
+        },
+        "side_effects": [
+          "fs-read"
+        ]
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "tool-definition",
+      "id": "read-file",
+      "version": "1.0.0",
+      "name": "read-file",
+      "description": "Read a file from the workspace. Read-only; no side effects beyond opening the file.",
+      "tool_spec": {
+        "function_name": "read_file",
+        "summary": "Read the contents of a file at the given path.",
+        "parameters": {
+          "path": {
+            "type": "string",
+            "description": "Absolute or workspace-relative path",
+            "required": true
+          },
+          "offset": {
+            "type": "number",
+            "description": "Line offset for partial reads",
+            "required": false
+          },
+          "limit": {
+            "type": "number",
+            "description": "Max lines to return",
+            "required": false
+          }
+        },
+        "returns": {
+          "type": "string",
+          "description": "File contents (or specified slice)."
+        },
+        "side_effects": [
+          "fs-read"
+        ]
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "tool-definition",
+      "id": "schedule-task",
+      "version": "1.0.0",
+      "name": "schedule-task",
+      "description": "Register a cron / timer task. Side-effecting (creates persistent schedule).",
+      "tool_spec": {
+        "function_name": "schedule_task",
+        "summary": "Register a recurring task.",
+        "parameters": {
+          "cron": {
+            "type": "string",
+            "description": "Cron expression",
+            "required": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Task name",
+            "required": true
+          },
+          "payload": {
+            "type": "object",
+            "description": "Task definition",
+            "required": true
+          }
+        },
+        "returns": {
+          "type": "object",
+          "description": "{task_id, next_run}."
+        },
+        "side_effects": [
+          "network"
+        ]
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "tool-definition",
+      "id": "send-message",
+      "version": "1.0.0",
+      "name": "send-message",
+      "description": "Send a message to an external channel (Slack, email, etc.). External, side-effecting.",
+      "tool_spec": {
+        "function_name": "send_message",
+        "summary": "Send a message to a channel.",
+        "parameters": {
+          "channel": {
+            "type": "string",
+            "description": "Channel identifier (slack://...; mailto:...)",
+            "required": true
+          },
+          "subject": {
+            "type": "string",
+            "description": "Subject / title",
+            "required": false
+          },
+          "body": {
+            "type": "string",
+            "description": "Message body",
+            "required": true
+          }
+        },
+        "returns": {
+          "type": "object",
+          "description": "{sent, message_id}."
+        },
+        "side_effects": [
+          "network",
+          "user-prompt"
+        ]
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "tool-definition",
+      "id": "sql-mutate",
+      "version": "1.0.0",
+      "name": "sql-mutate",
+      "description": "INSERT / UPDATE / DELETE against a named DSN. Side-effecting.",
+      "tool_spec": {
+        "function_name": "sql_mutate",
+        "summary": "Run a DML statement.",
+        "parameters": {
+          "dsn": {
+            "type": "string",
+            "description": "Named DSN",
+            "required": true
+          },
+          "sql": {
+            "type": "string",
+            "description": "INSERT / UPDATE / DELETE",
+            "required": true
+          },
+          "params": {
+            "type": "array",
+            "description": "Parameterized values",
+            "required": false
+          }
+        },
+        "returns": {
+          "type": "object",
+          "description": "{rows_affected}."
+        },
+        "side_effects": [
+          "network",
+          "user-prompt"
+        ]
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "tool-definition",
+      "id": "sql-query",
+      "version": "1.0.0",
+      "name": "sql-query",
+      "description": "Read-only SELECT against a named DSN.",
+      "tool_spec": {
+        "function_name": "sql_query",
+        "summary": "Run a SELECT and return rows.",
+        "parameters": {
+          "dsn": {
+            "type": "string",
+            "description": "Named DSN identifier",
+            "required": true
+          },
+          "sql": {
+            "type": "string",
+            "description": "SELECT statement",
+            "required": true
+          },
+          "params": {
+            "type": "array",
+            "description": "Parameterized values",
+            "required": false
+          }
+        },
+        "returns": {
+          "type": "array",
+          "description": "Result rows as objects."
+        },
+        "side_effects": [
+          "network"
+        ]
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/atom-v1.json",
+      "type": "tool-definition",
+      "id": "stat",
+      "version": "1.0.0",
+      "name": "stat",
+      "description": "File metadata: size, mtime, mode, type.",
+      "tool_spec": {
+        "function_name": "stat",
+        "summary": "Return metadata for a path.",
+        "parameters": {
+          "path": {
+            "type": "string",
+            "description": "File or directory path",
+            "required": true
+          }
+        },
+        "returns": {
+          "type": "object",
+          "description": "Metadata fields."
+        },
+        "side_effects": [
+          "fs-read"
+        ]
+      }
+    }
+  ],
+  "compositions": [
+    {
+      "schema": "https://agent-atoms.com/schemas/composition-v1.json",
+      "type": "agent",
+      "id": "code-reviewer",
+      "version": "1.0.0",
+      "name": "Code Reviewer",
+      "description": "Read-only adversarial code-review agent. Reads diffs, grep'd context, files findings. Cannot exec, cannot reach network.",
+      "tags": [
+        "code-review",
+        "engineering"
+      ],
+      "references": {
+        "persona": {
+          "ref": "agent-atoms://atoms/persona/code-reviewer",
+          "version": "1.0.0"
+        },
+        "tools": [
+          {
+            "ref": "agent-atoms://atoms/tool-definition/git-diff",
+            "version": "1.0.0"
+          },
+          {
+            "ref": "agent-atoms://atoms/tool-definition/read-file",
+            "version": "1.0.0"
+          },
+          {
+            "ref": "agent-atoms://atoms/tool-definition/list-dir",
+            "version": "1.0.0"
+          },
+          {
+            "ref": "agent-atoms://atoms/tool-definition/grep",
+            "version": "1.0.0"
+          }
+        ],
+        "capabilities": [
+          {
+            "ref": "agent-atoms://atoms/capability-declaration/read-only-workspace",
+            "version": "1.0.0"
+          }
+        ],
+        "role_boundaries": [
+          {
+            "ref": "agent-atoms://atoms/role-boundary/no-code-execution",
+            "version": "1.0.0"
+          },
+          {
+            "ref": "agent-atoms://atoms/role-boundary/no-network-egress",
+            "version": "1.0.0"
+          }
+        ],
+        "isolation": {
+          "ref": "agent-atoms://atoms/isolation-constraint/read-only-sandbox",
+          "version": "1.0.0"
+        }
+      }
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/composition-v1.json",
+      "type": "agent",
+      "id": "runbook-executor",
+      "version": "1.0.0",
+      "name": "Runbook Executor",
+      "description": "DevOps runbook execution agent. bash exec + scoped writes + outbound HTTP, gated by per-command user approval and container isolation.",
+      "tags": [
+        "devops",
+        "operations"
+      ],
+      "references": {
+        "persona": {
+          "ref": "agent-atoms://atoms/persona/devops-engineer",
+          "version": "1.0.0"
+        },
+        "tools": [
+          {
+            "ref": "agent-atoms://atoms/tool-definition/bash-exec",
+            "version": "1.0.0"
+          },
+          {
+            "ref": "agent-atoms://atoms/tool-definition/http-fetch",
+            "version": "1.0.0"
+          },
+          {
+            "ref": "agent-atoms://atoms/tool-definition/file-write",
+            "version": "1.0.0"
+          }
+        ],
+        "capabilities": [
+          {
+            "ref": "agent-atoms://atoms/capability-declaration/exec-with-approval",
+            "version": "1.0.0"
+          }
+        ],
+        "role_boundaries": [
+          {
+            "ref": "agent-atoms://atoms/role-boundary/no-data-exfiltration",
+            "version": "1.0.0"
+          }
+        ],
+        "isolation": {
+          "ref": "agent-atoms://atoms/isolation-constraint/container-with-allowlist",
+          "version": "1.0.0"
+        }
+      }
+    }
+  ],
+  "rules": [
+    {
+      "schema": "https://agent-atoms.com/schemas/rule-v1.json",
+      "type": "capability-grant",
+      "id": "exec-requires-isolation",
+      "version": "1.0.0",
+      "name": "Exec requires container-grade isolation",
+      "description": "capability/exec-with-approval requires isolation in {container-with-allowlist, ephemeral-vm, seccomp-restricted}. read-only-sandbox is too weak; no-isolation is forbidden.",
+      "predicate": {
+        "subject_ref": "agent-atoms://atoms/capability-declaration/exec-with-approval",
+        "condition": "in",
+        "value": [
+          "agent-atoms://atoms/isolation-constraint/container-with-allowlist",
+          "agent-atoms://atoms/isolation-constraint/ephemeral-vm",
+          "agent-atoms://atoms/isolation-constraint/seccomp-restricted"
+        ]
+      },
+      "effect": "require",
+      "rationale": "An agent granted exec-commands without container-grade isolation has a path to escape the workspace via any subprocess it spawns. Pair exec capability with an isolation atom that constrains process, filesystem, and network at the host level."
+    },
+    {
+      "schema": "https://agent-atoms.com/schemas/rule-v1.json",
+      "type": "isolation-rule",
+      "id": "network-write-requires-allowlist",
+      "version": "1.0.0",
+      "name": "Network-write tools require an allowlisted network",
+      "description": "tool/http-post requires isolation in {container-with-allowlist, network-namespaced}. A side-effecting HTTP method without an allowlist can post to arbitrary external hosts.",
+      "predicate": {
+        "subject_ref": "agent-atoms://atoms/tool-definition/http-post",
+        "condition": "in",
+        "value": [
+          "agent-atoms://atoms/isolation-constraint/container-with-allowlist",
+          "agent-atoms://atoms/isolation-constraint/network-namespaced"
+        ]
+      },
+      "effect": "require",
+      "rationale": "Side-effecting HTTP (POST/PUT/PATCH/DELETE) is the standard data-exfiltration vector. Pair it with network-allowlist isolation so the destination set is known and small."
+    }
+  ]
+}
